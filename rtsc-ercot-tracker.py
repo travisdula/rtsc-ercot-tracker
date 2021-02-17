@@ -2,8 +2,16 @@ import requests
 import re
 import time
 import json
+import argparse
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--visualize', help='json file to visualize')
+    parser.add_argument('--track', help='file to make output json')
+    args = parser.parse_args()
+    return (args.visualize, args.track)
 
 def get_info(url):
     r = requests.get(url)
@@ -31,22 +39,28 @@ def make_image(json_obj):
     plt.legend()
     plt.xlabel('time')
     plt.ylim(ymax=round(1.1*max(capacity)), ymin=min(0, min(diffs)))
-    plt.savefig('graph.png')
+    plt.savefig(f'{max(times)}.png')
 
 def main():
     url = 'http://www.ercot.com/content/cdr/html/real_time_system_conditions.html'
     info_list = []
-    while True:
-        try:
-            info = get_info(url)
-            info_list.append(info)
-            time.sleep(60*5)
-        except KeyboardInterrupt:
-            with open('out.json', 'w') as outfile:
-                json.dump(info_list, outfile)
-                make_image(info_list)
-            break
-
+    visualize, track = parse_arguments()
+    if visualize and track:
+        print('Please select only one optional argument')
+    elif visualize:
+        with open(visualize, 'r') as vis_json:
+            make_image(json.loads(vis_json.read()))
+    elif track:
+        while True:
+            try:
+                info = get_info(url)
+                info_list.append(info)
+                time.sleep(60*5)
+            except KeyboardInterrupt:
+                with open('out.json', 'w') as outfile:
+                    json.dump(info_list, outfile)
+                break
+    
 
 if __name__ == '__main__':
         main()
