@@ -14,7 +14,12 @@ def parse_arguments():
     return (args.visualize, args.track)
 
 def get_info(url):
-    r = requests.get(url)
+    while True:
+        try:
+            r = requests.get(url)
+            break
+        except TimeoutError:
+            continue
     soup = BeautifulSoup(r.text, features="html5lib")
     d = dict()
     d['time'] = int(time.time())
@@ -51,16 +56,19 @@ def main():
         with open(visualize, 'r') as vis_json:
             make_image(json.loads(vis_json.read()))
     elif track:
-        while True:
+        # the number of 5 minute intervals in a day
+        for _ in range(288):
             try:
                 info = get_info(url)
                 info_list.append(info)
                 time.sleep(60*5)
-            except KeyboardInterrupt:
-                with open('out.json', 'w') as outfile:
+            except Exception as e:
+                print(e)
+                print('errors encountered, sleeping 1 minute')
+                time.sleep(60)
+            finally:
+                with open(track, 'w') as outfile:
                     json.dump(info_list, outfile)
-                break
-    
 
 if __name__ == '__main__':
         main()
