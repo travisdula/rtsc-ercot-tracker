@@ -1,4 +1,6 @@
 # rtsc-ercot-tracker
+![example graph](./examples/1613851513.png)
+
 ## Purpose
 Around the middle of February 2021, we were hit with unusually bad winter weather.
 Texas, my home state, seemed to be suffering the worst.
